@@ -124,16 +124,34 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo-container">
-            <div class="logo">
-                <img src="pngwing.com.png" alt="Existing Logo">
-                <p>X</p>
-            </div>
-            <div class="logo">
-                <img src="heydo-favicon.png" alt="New Logo">
-<!--                 <p>New Brand Logo</p> -->
-            </div>
-        </div>
+        <!-- Logos Section -->
+<div class="logo-container">
+    <div class="logo">
+        <img src="pngwing.com.png" alt="Existing Logo">
+    </div>
+    <div class="logo">
+        <img src="heydo-favicon.png" alt="New Logo">
+    </div>
+</div>
+
+<!-- CSS -->
+<style>
+    .logo-container {
+        display: flex;
+        justify-content: center; /* Centers items horizontally */
+        gap: 20px; /* Adds space between the logos */
+    }
+
+    .logo {
+        text-align: center; /* Ensures text aligns below each logo */
+    }
+
+    .logo img {
+        max-width: 150px; /* Adjust the size of the logos as needed */
+        height: auto;
+    }
+</style>
+
         <h1>Upload Documents</h1>
         <form id="uploadForm">
             <div class="upload-section" id="uploadFields">
