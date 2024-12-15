@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fdf5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid #ff6f61;
+        }
+
+        h1 {
+            text-align: center;
+            color: #d9534f;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            max-width: 150px;
+        }
+
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #b52a27;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ffe9;
+            border: 1px solid #d4ffd4;
+            border-radius: 5px;
+            color: #4CAF50;
+        }
+
+        .error {
+            background: #ffe9e9;
+            border: 1px solid #ffd4d4;
+            color: #F44336;
+        }
+
+        .loader {
+            display: none;
+            margin: 10px auto;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: #f3f3f3;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-bar-inner {
+            height: 20px;
+            width: 0;
+            background: #d9534f;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            font-size: 12px;
+        }
+
+        .status-text {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="pngwing.com.png" alt="Logo">
+        </div>
+        <h1>Upload Documents</h1>
+        <form id="uploadForm">
+            <div class="upload-section" id="uploadFields">
+                <!-- Dynamic fields will be inserted here -->
+            </div>
+            <div class="loader" id="loader">
+                <div class="progress-bar">
+                    <div class="progress-bar-inner" id="progressBar">0%</div>
+                </div>
+                <div class="status-text" id="statusText"></div>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="responseMessage" class="response" style="display: none;"></div>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadFields = document.getElementById('uploadFields');
+        const responseMessage = document.getElementById('responseMessage');
+        const loader = document.getElementById('loader');
+        const progressBar = document.getElementById('progressBar');
+        const statusText = document.getElementById('statusText');
+
+        const documentTypes = [
+            "Aadhaar Card*",
+            "Aadhaar Card Back*",
+            "PAN Card*",
+            "Nominee Aadhaar Card*",
+            "Nominee Aadhaar Card Back*",
+            "Nominee PAN Card*",
+            "Account Opening Form*"
+        ];
+
+        // Generate dynamic file input fields
+        documentTypes.forEach(doc => {
+            const section = document.createElement('div');
+            section.style.marginBottom = '10px';
+            section.innerHTML = `
+                <label for="${doc}">${doc}</label>
+                <input type="file" id="${doc}" name="${doc}" accept="image/*,application/pdf" required />
+            `;
+            uploadFields.appendChild(section);
+        });
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            responseMessage.style.display = 'none';
+            responseMessage.innerHTML = '';
+            responseMessage.classList.remove('error');
+
+            loader.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.innerHTML = '0%';
+            statusText.innerHTML = '';
+
+            const formData = new FormData(uploadForm);
+            const cloudinaryUrl = 'https://api.cloudinary.com/v1_1/dnfiejqme/upload';
+            const cloudinaryPreset = 'indian-post';
+
+            const jsonPayload = { Images: {}, Fields: {} };
+
+            try {
+                let progress = 0;
+                const increment = 100 / documentTypes.length;
+
+                for (const [key, value] of formData.entries()) {
+                    if (value instanceof File) {
+                        statusText.innerHTML = `Reading from ${key}`;
+
+                        const fileData = new FormData();
+                        fileData.append('file', value);
+                        fileData.append('upload_preset', cloudinaryPreset);
+
+                        const response = await fetch(cloudinaryUrl, {
+                            method: 'POST',
+                            body: fileData
+                        });
+
+                        if (!response.ok) throw new Error(`Failed to upload ${key}`);
+
+                        const data = await response.json();
+                        jsonPayload.Images[key] = { link: data.secure_url };
+
+                        progress += increment;
+                        progressBar.style.width = `${Math.min(progress, 100)}%`;
+                        progressBar.innerHTML = `${Math.min(Math.round(progress), 100)}%`;
+                    }
+                }
+
+                statusText.innerHTML = 'Extracting information from files';
+                await new Promise(resolve => setTimeout(resolve, 2500));
+
+                statusText.innerHTML = 'Analysing all the files';
+                await new Promise(resolve => setTimeout(resolve, 2500));
+
+                statusText.innerHTML = 'Connecting Securely to Indian Post Site';
+
+                // Example API call to send JSON data
+                const apiResponse = await fetch('http://127.0.0.1:5004', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(jsonPayload)
+                });
+
+                if (!apiResponse.ok) throw new Error('Failed to send data to the API');
+
+                responseMessage.style.display = 'block';
+                responseMessage.innerHTML = 'Files successfully uploaded and sent to the API!';
+            } catch (error) {
+                responseMessage.style.display = 'block';
+                responseMessage.classList.add('error');
+                responseMessage.innerHTML = `Error: ${error.message}`;
+            } finally {
+                loader.style.display = 'none';
+                statusText.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>
