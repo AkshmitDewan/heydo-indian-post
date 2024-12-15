@@ -47,10 +47,19 @@
             margin-bottom: 15px;
         }
 
+        .upload-label{
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #555;
+            width: 150px;
+            display: inline-block;
+        }
+
         label {
             font-size: 14px;
             margin-bottom: 5px;
             color: #555;
+            
         }
 
         input[type="file"] {
@@ -139,7 +148,7 @@
     .logo-container {
         display: flex;
         justify-content: center; /* Centers items horizontally */
-        gap: 20px; /* Adds space between the logos */
+        gap: 200px; /* Adds space between the logos */
     }
 
     .logo {
@@ -148,7 +157,8 @@
 
     .logo img {
         max-width: 150px; /* Adjust the size of the logos as needed */
-        height: auto;
+        /* height: auto; */
+        max-height: 100px;
     }
 </style>
 
@@ -191,7 +201,7 @@
             const section = document.createElement('div');
             section.style.marginBottom = '10px';
             section.innerHTML = `
-                <label for="${doc}">${doc}</label>
+                <label class="upload-label" for="${doc}">${doc}</label>
                 <input type="file" id="${doc}" name="${doc}" accept="image/*,application/pdf" required />
             `;
             uploadFields.appendChild(section);
